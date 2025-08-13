@@ -198,13 +198,24 @@ Resources:
                 Action:
                   - s3:GetObject
                   - s3:PutObject
+                  - s3:DeleteObject
+                  - s3:ListBucket
                 Resource: 
                   - !Sub '${ArtifactsBucket}/*'
                   - !Sub '${WebsiteBucket}/*'
+                  - !Ref ArtifactsBucket
+                  - !Ref WebsiteBucket
               - Effect: Allow
                 Action:
                   - cloudfront:CreateInvalidation
-                Resource: !Sub 'arn:aws:cloudfront::${AWS::AccountId}:distribution/${CloudFrontDistribution}'
+                  - cloudfront:GetDistribution
+                  - cloudfront:CreateDistribution
+                  - cloudfront:UpdateDistribution
+                  - cloudfront:DeleteDistribution
+                  - cloudfront:TagResource
+                Resource: 
+                  - !Sub 'arn:aws:cloudfront::${AWS::AccountId}:distribution/${CloudFrontDistribution}'
+                  - !Sub 'arn:aws:cloudfront::${AWS::AccountId}:distribution/*'
               - Effect: Allow
                 Action:
                   - wafv2:CreateWebACL
@@ -214,7 +225,9 @@ Resources:
                   - wafv2:TagResource
                   - wafv2:UntagResource
                   - wafv2:ListTagsForResource
-                Resource: !Sub 'arn:aws:wafv2:*:${AWS::AccountId}:*'
+                Resource: 
+                  - !Sub 'arn:aws:wafv2:*:${AWS::AccountId}:global/webacl/*'
+                  - !Sub 'arn:aws:wafv2:*:${AWS::AccountId}:global/managedruleset/*'
               - Effect: Allow
                 Action:
                   - tag:GetResources
@@ -298,7 +311,7 @@ Resources:
                   - s3:GetBucketVersioning
                 Resource:
                   - !Sub '${ArtifactsBucket}/*'
-                  - !GetAtt ArtifactsBucket.Arn
+                  - !Ref ArtifactsBucket
               - Effect: Allow
                 Action:
                   - codebuild:BatchGetBuilds
