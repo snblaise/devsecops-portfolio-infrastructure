@@ -285,14 +285,6 @@ Resources:
                   - !GetAtt ArtifactsBucket.Arn
               - Effect: Allow
                 Action:
-                  - codecommit:GetBranch
-                  - codecommit:GetCommit
-                  - codecommit:GetRepository
-                  - codecommit:ListBranches
-                  - codecommit:ListRepositories
-                Resource: !GetAtt CodeRepository.Arn
-              - Effect: Allow
-                Action:
                   - codebuild:BatchGetBuilds
                   - codebuild:StartBuild
                 Resource: !GetAtt BuildProject.Arn
