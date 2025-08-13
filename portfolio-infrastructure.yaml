@@ -28,14 +28,9 @@ Resources:
       PublicAccessBlockConfiguration:
         BlockPublicAcls: true
         BlockPublicPolicy: true
-        IgnorePublicAcls: false
+        IgnorePublicAcls: true
         RestrictPublicBuckets: true
-      OwnershipControls:
-        Rules:
-          - ObjectOwnership: BucketOwnerPreferred
-      LoggingConfiguration:
-        DestinationBucketName: !Ref LoggingBucketName
-        LogFilePrefix: cloudfront-logs/
+
 
   # S3 Bucket for Website Hosting (Security Enhanced)
   WebsiteBucket:
@@ -71,6 +66,24 @@ Resources:
             Condition:
               StringEquals:
                 AWS:SourceArn: !Sub arn:aws:cloudfront::${AWS::AccountId}:distribution/${CloudFrontDistribution}
+
+  # S3 Bucket Policy for CloudFront Logging
+  LoggingBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref LoggingBucket
+      PolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: cloudfront.amazonaws.com
+            Action: s3:PutObject
+            Resource: !Sub '${LoggingBucket}/cloudfront-logs/*'
+          - Effect: Allow
+            Principal:
+              Service: cloudfront.amazonaws.com
+            Action: s3:GetBucketAcl
+            Resource: !Ref LoggingBucket
 
   # CloudFront Origin Access Control
   OriginAccessControl:
