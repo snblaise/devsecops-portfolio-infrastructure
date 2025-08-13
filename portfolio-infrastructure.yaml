@@ -2,11 +2,6 @@ AWSTemplateFormatVersion: '2010-09-09'
 Description: 'DevSecOps Portfolio - S3 + CloudFront + CI/CD Pipeline'
 
 Parameters:
-  DomainName:
-    Type: String
-    Default: 'portfolio.example.com'
-    Description: 'Domain name for the portfolio'
-  
   ProjectName:
     Type: String
     Default: 'devsecops-portfolio'
