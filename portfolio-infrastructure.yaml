@@ -28,7 +28,7 @@ Resources:
       PublicAccessBlockConfiguration:
         BlockPublicAcls: true
         BlockPublicPolicy: true
-        IgnorePublicAcls: true
+        IgnorePublicAcls: false
         RestrictPublicBuckets: true
       LoggingConfiguration:
         DestinationBucketName: !Ref LoggingBucketName
@@ -112,7 +112,10 @@ Resources:
         PriceClass: PriceClass_100
         WebACLId: !ImportValue
           Fn::Sub: '${ProjectName}-waf-arn'
-
+        Logging:
+          Bucket: !GetAtt LoggingBucket.DomainName
+          Prefix: cloudfront-logs/
+          IncludeCookies: false
         ViewerCertificate:
           CloudFrontDefaultCertificate: true
           MinimumProtocolVersion: TLSv1.2_2021
