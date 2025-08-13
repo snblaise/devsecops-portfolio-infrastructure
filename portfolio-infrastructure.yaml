@@ -28,7 +28,7 @@ Resources:
       PublicAccessBlockConfiguration:
         BlockPublicAcls: true
         BlockPublicPolicy: true
-        IgnorePublicAcls: false
+        IgnorePublicAcls: true
         RestrictPublicBuckets: true
       LoggingConfiguration:
         DestinationBucketName: !Ref LoggingBucketName
@@ -132,6 +132,9 @@ Resources:
         BlockPublicPolicy: true
         IgnorePublicAcls: true
         RestrictPublicBuckets: true
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerPreferred
       LoggingConfiguration:
         DestinationBucketName: !Ref LoggingBucketName
         LogFilePrefix: artifacts-logs/
