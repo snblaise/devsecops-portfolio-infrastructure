@@ -207,8 +207,19 @@ Resources:
                 Resource: !Sub 'arn:aws:cloudfront::${AWS::AccountId}:distribution/${CloudFrontDistribution}'
               - Effect: Allow
                 Action:
-                  - wafv2:*
-                  - tag:*
+                  - wafv2:CreateWebACL
+                  - wafv2:GetWebACL
+                  - wafv2:UpdateWebACL
+                  - wafv2:DeleteWebACL
+                  - wafv2:TagResource
+                  - wafv2:UntagResource
+                  - wafv2:ListTagsForResource
+                Resource: !Sub 'arn:aws:wafv2:*:${AWS::AccountId}:*'
+              - Effect: Allow
+                Action:
+                  - tag:GetResources
+                  - tag:TagResources
+                  - tag:UntagResources
                 Resource: '*'
 
   # CodeBuild Project
