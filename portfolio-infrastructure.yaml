@@ -1,28 +1,28 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: 'DevSecOps Portfolio - S3 + CloudFront + CI/CD Pipeline (Security Enhanced)'
+Description: DevSecOps Portfolio - S3 + CloudFront + CI/CD Pipeline (Security Enhanced)
 
 Parameters:
   ProjectName:
     Type: String
-    Default: 'devsecops-portfolio'
-    Description: 'Name of the project'
+    Default: devsecops-portfolio
+    Description: Name of the project
 
   coderepository:
     Type: String
-    Default: 'devsecops-portfolio-github'
-    Description: 'Name of the CodeCommit repository'
-  
+    Default: devsecops-portfolio-github
+    Description: Name of the CodeCommit repository
+
   LoggingBucketName:
     Type: String
-    Default: 'devsecoplogs'
-    Description: 'Name of the S3 bucket for logging'
+    Default: devsecoplogs
+    Description: Name of the S3 bucket for logging
 
 Resources:
   # S3 Bucket for CloudFront Access Logs
   LoggingBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub '${ProjectName}-logs-${AWS::AccountId}'
+      BucketName: !Sub ${ProjectName}-logs-${AWS::AccountId}
       VersioningConfiguration:
         Status: Enabled
       PublicAccessBlockConfiguration:
@@ -34,12 +34,11 @@ Resources:
         DestinationBucketName: !Ref LoggingBucketName
         LogFilePrefix: cloudfront-logs/
 
-
   # S3 Bucket for Website Hosting (Security Enhanced)
   WebsiteBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub '${ProjectName}-website-${AWS::AccountId}'
+      BucketName: !Sub ${ProjectName}-website-${AWS::AccountId}
       VersioningConfiguration:
         Status: Enabled
       WebsiteConfiguration:
@@ -65,58 +64,22 @@ Resources:
             Principal:
               Service: cloudfront.amazonaws.com
             Action: s3:GetObject
-            Resource: !Sub '${WebsiteBucket}/*'
+            Resource: !Sub ${WebsiteBucket}/*
             Condition:
               StringEquals:
-                'AWS:SourceArn': !Sub 'arn:aws:cloudfront::${AWS::AccountId}:distribution/${CloudFrontDistribution}'
+                AWS:SourceArn: !Sub arn:aws:cloudfront::${AWS::AccountId}:distribution/${CloudFrontDistribution}
 
   # CloudFront Origin Access Control
   OriginAccessControl:
     Type: AWS::CloudFront::OriginAccessControl
     Properties:
       OriginAccessControlConfig:
-        Name: !Sub '${ProjectName}-oac'
+        Name: !Sub ${ProjectName}-oac
         OriginAccessControlOriginType: s3
         SigningBehavior: always
         SigningProtocol: sigv4
 
-  # WAF Web ACL for CloudFront
-  WebACL:
-    Type: AWS::WAFv2::WebACL
-    Properties:
-      Name: !Sub '${ProjectName}-waf'
-      Scope: CLOUDFRONT
-      DefaultAction:
-        Allow: {}
-      Rules:
-        - Name: AWSManagedRulesCommonRuleSet
-          Priority: 1
-          OverrideAction:
-            None: {}
-          Statement:
-            ManagedRuleGroupStatement:
-              VendorName: AWS
-              Name: AWSManagedRulesCommonRuleSet
-          VisibilityConfig:
-            SampledRequestsEnabled: true
-            CloudWatchMetricsEnabled: true
-            MetricName: CommonRuleSetMetric
-        - Name: AWSManagedRulesKnownBadInputsRuleSet
-          Priority: 2
-          OverrideAction:
-            None: {}
-          Statement:
-            ManagedRuleGroupStatement:
-              VendorName: AWS
-              Name: AWSManagedRulesKnownBadInputsRuleSet
-          VisibilityConfig:
-            SampledRequestsEnabled: true
-            CloudWatchMetricsEnabled: true
-            MetricName: KnownBadInputsRuleSetMetric
-      VisibilityConfig:
-        SampledRequestsEnabled: true
-        CloudWatchMetricsEnabled: true
-        MetricName: !Sub '${ProjectName}-waf'
+
 
   # CloudFront Distribution (Security Enhanced)
   CloudFrontDistribution:
@@ -132,8 +95,8 @@ Resources:
         DefaultCacheBehavior:
           TargetOriginId: S3Origin
           ViewerProtocolPolicy: redirect-to-https
-          CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6  # Managed-CachingOptimized
-          OriginRequestPolicyId: 88a5eaf4-2fd4-4709-b370-b4c650ea3fcf  # Managed-CORS-S3Origin
+          CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6 # Managed-CachingOptimized
+          OriginRequestPolicyId: 88a5eaf4-2fd4-4709-b370-b4c650ea3fcf # Managed-CORS-S3Origin
         DefaultRootObject: index.html
         CustomErrorResponses:
           - ErrorCode: 404
@@ -145,7 +108,8 @@ Resources:
         Enabled: true
         HttpVersion: http2
         PriceClass: PriceClass_100
-        WebACLId: !GetAtt WebACL.Arn
+        WebACLId: !ImportValue
+          Fn::Sub: '${ProjectName}-waf-arn'
         Logging:
           Bucket: !GetAtt LoggingBucket.DomainName
           Prefix: cloudfront-logs/
@@ -158,7 +122,7 @@ Resources:
   ArtifactsBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub '${ProjectName}-artifacts-${AWS::AccountId}'
+      BucketName: !Sub ${ProjectName}-artifacts-${AWS::AccountId}
       VersioningConfiguration:
         Status: Enabled
       PublicAccessBlockConfiguration:
@@ -169,8 +133,6 @@ Resources:
       LoggingConfiguration:
         DestinationBucketName: !Ref LoggingBucketName
         LogFilePrefix: artifacts-logs/
-
-
 
   # CodeBuild Service Role
   CodeBuildRole:
@@ -193,16 +155,16 @@ Resources:
                   - logs:CreateLogGroup
                   - logs:CreateLogStream
                   - logs:PutLogEvents
-                Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/*'
+                Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/*
               - Effect: Allow
                 Action:
                   - s3:GetObject
                   - s3:PutObject
                   - s3:DeleteObject
                   - s3:ListBucket
-                Resource: 
-                  - !Sub '${ArtifactsBucket}/*'
-                  - !Sub '${WebsiteBucket}/*'
+                Resource:
+                  - !Sub ${ArtifactsBucket}/*
+                  - !Sub ${WebsiteBucket}/*
                   - !Ref ArtifactsBucket
                   - !Ref WebsiteBucket
               - Effect: Allow
@@ -213,9 +175,9 @@ Resources:
                   - cloudfront:UpdateDistribution
                   - cloudfront:DeleteDistribution
                   - cloudfront:TagResource
-                Resource: 
-                  - !Sub 'arn:aws:cloudfront::${AWS::AccountId}:distribution/${CloudFrontDistribution}'
-                  - !Sub 'arn:aws:cloudfront::${AWS::AccountId}:distribution/*'
+                Resource:
+                  - !Sub arn:aws:cloudfront::${AWS::AccountId}:distribution/${CloudFrontDistribution}
+                  - !Sub arn:aws:cloudfront::${AWS::AccountId}:distribution/*
               - Effect: Allow
                 Action:
                   - wafv2:CreateWebACL
@@ -225,9 +187,9 @@ Resources:
                   - wafv2:TagResource
                   - wafv2:UntagResource
                   - wafv2:ListTagsForResource
-                Resource: 
-                  - !Sub 'arn:aws:wafv2:*:${AWS::AccountId}:global/webacl/*'
-                  - !Sub 'arn:aws:wafv2:*:${AWS::AccountId}:global/managedruleset/*'
+                Resource:
+                  - !Sub arn:aws:wafv2:*:${AWS::AccountId}:global/webacl/*
+                  - !Sub arn:aws:wafv2:*:${AWS::AccountId}:global/managedruleset/*
               - Effect: Allow
                 Action:
                   - tag:GetResources
@@ -239,7 +201,7 @@ Resources:
   BuildProject:
     Type: AWS::CodeBuild::Project
     Properties:
-      Name: !Sub '${ProjectName}-build'
+      Name: !Sub ${ProjectName}-build
       ServiceRole: !GetAtt CodeBuildRole.Arn
       Artifacts:
         Type: CODEPIPELINE
@@ -310,7 +272,7 @@ Resources:
                   - s3:PutObject
                   - s3:GetBucketVersioning
                 Resource:
-                  - !Sub '${ArtifactsBucket}/*'
+                  - !Sub ${ArtifactsBucket}/*
                   - !Ref ArtifactsBucket
               - Effect: Allow
                 Action:
@@ -322,7 +284,7 @@ Resources:
   Pipeline:
     Type: AWS::CodePipeline::Pipeline
     Properties:
-      Name: !Sub '${ProjectName}-pipeline'
+      Name: !Sub ${ProjectName}-pipeline
       RoleArn: !GetAtt CodePipelineRole.Arn
       ArtifactStore:
         Type: S3
@@ -358,18 +320,14 @@ Resources:
 
 Outputs:
   WebsiteURL:
-    Description: 'CloudFront Distribution URL'
-    Value: !Sub 'https://${CloudFrontDistribution.DomainName}'
-  
-  
+    Description: CloudFront Distribution URL
+    Value: !Sub https://${CloudFrontDistribution.DomainName}
+
   S3BucketName:
-    Description: 'S3 bucket hosting the website'
+    Description: S3 bucket hosting the website
     Value: !Ref WebsiteBucket
-  
+
   CloudFrontDistributionId:
-    Description: 'CloudFront Distribution ID'
+    Description: CloudFront Distribution ID
     Value: !Ref CloudFrontDistribution
-  
-  WAFWebACLId:
-    Description: 'WAF Web ACL ID'
-    Value: !Ref WebACL
+
