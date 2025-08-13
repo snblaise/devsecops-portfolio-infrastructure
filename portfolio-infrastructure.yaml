@@ -20,9 +20,6 @@ Resources:
         BlockPublicPolicy: true
         IgnorePublicAcls: true
         RestrictPublicBuckets: true
-      LoggingConfiguration:
-        DestinationBucketName: !Ref LoggingBucket
-        LogFilePrefix: access-logs/
 
   # S3 Bucket for Website Hosting (Security Enhanced)
   WebsiteBucket:
