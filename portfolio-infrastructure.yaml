@@ -6,6 +6,11 @@ Parameters:
     Type: String
     Default: 'devsecops-portfolio'
     Description: 'Name of the project'
+
+  coderepository
+    Type: String
+    Default: 'devsecops-portfolio-github'
+    Description: 'Name of the CodeCommit repository'
   
   LoggingBucketName:
     Type: String
@@ -308,7 +313,7 @@ Resources:
                 Provider: CodeCommit
                 Version: '1'
               Configuration:
-                RepositoryName: !GetAtt CodeRepository.Name
+                RepositoryName: !Ref coderepository
                 BranchName: main
               OutputArtifacts:
                 - Name: SourceOutput
@@ -332,9 +337,6 @@ Outputs:
     Description: 'CloudFront Distribution URL'
     Value: !Sub 'https://${CloudFrontDistribution.DomainName}'
   
-  RepositoryCloneUrl:
-    Description: 'Git clone URL for the repository'
-    Value: !GetAtt CodeRepository.CloneUrlHttp
   
   S3BucketName:
     Description: 'S3 bucket hosting the website'
