@@ -7,7 +7,7 @@ Parameters:
     Default: 'devsecops-portfolio'
     Description: 'Name of the project'
 
-  coderepository
+  coderepository:
     Type: String
     Default: 'devsecops-portfolio-github'
     Description: 'Name of the CodeCommit repository'
