@@ -99,7 +99,7 @@ Resources:
     Type: AWS::CodeCommit::Repository
     Properties:
       RepositoryName: !Ref ProjectName
-      RepositoryDescription: !Sub 'DevSecOps Portfolio Repository'
+      RepositoryDescription: 'DevSecOps Portfolio Repository'
 
   # CodeBuild Service Role
   CodeBuildRole:
