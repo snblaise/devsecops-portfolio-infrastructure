@@ -28,8 +28,11 @@ Resources:
       PublicAccessBlockConfiguration:
         BlockPublicAcls: true
         BlockPublicPolicy: true
-        IgnorePublicAcls: true
+        IgnorePublicAcls: false
         RestrictPublicBuckets: true
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerPreferred
       LoggingConfiguration:
         DestinationBucketName: !Ref LoggingBucketName
         LogFilePrefix: cloudfront-logs/
