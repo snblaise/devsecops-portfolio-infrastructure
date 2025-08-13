@@ -165,12 +165,7 @@ Resources:
         DestinationBucketName: !Ref LoggingBucketName
         LogFilePrefix: artifacts-logs/
 
-  # CodeCommit Repository
-  CodeRepository:
-    Type: AWS::CodeCommit::Repository
-    Properties:
-      RepositoryName: !Ref ProjectName
-      RepositoryDescription: 'DevSecOps Portfolio Repository'
+
 
   # CodeBuild Service Role
   CodeBuildRole:
@@ -205,6 +200,11 @@ Resources:
                 Action:
                   - cloudfront:CreateInvalidation
                 Resource: !Sub 'arn:aws:cloudfront::${AWS::AccountId}:distribution/${CloudFrontDistribution}'
+              - Effect: Allow
+                Action:
+                  - wafv2:*
+                  - tag:*
+                Resource: '*'
 
   # CodeBuild Project
   BuildProject:
