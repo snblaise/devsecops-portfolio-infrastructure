@@ -20,6 +20,9 @@ Resources:
         BlockPublicPolicy: true
         IgnorePublicAcls: true
         RestrictPublicBuckets: true
+      LoggingConfiguration:
+        DestinationBucketName: !Ref LoggingBucket
+        LogFilePrefix: cloudfront-logs/
 
   # S3 Bucket for Website Hosting (Security Enhanced)
   WebsiteBucket:
