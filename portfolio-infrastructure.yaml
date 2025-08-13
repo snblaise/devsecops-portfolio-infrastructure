@@ -6,6 +6,11 @@ Parameters:
     Type: String
     Default: 'devsecops-portfolio'
     Description: 'Name of the project'
+  
+  LoggingBucketName:
+    Type: String
+    Default: 'devsecoplogs'
+    Description: 'Name of the S3 bucket for logging'
 
 Resources:
   # S3 Bucket for CloudFront Access Logs
@@ -20,6 +25,9 @@ Resources:
         BlockPublicPolicy: true
         IgnorePublicAcls: true
         RestrictPublicBuckets: true
+      LoggingConfiguration:
+        DestinationBucketName: !Ref LoggingBucketName
+        LogFilePrefix: cloudfront-logs/
 
 
   # S3 Bucket for Website Hosting (Security Enhanced)
@@ -38,7 +46,7 @@ Resources:
         IgnorePublicAcls: true
         RestrictPublicBuckets: true
       LoggingConfiguration:
-        DestinationBucketName: !Ref LoggingBucket
+        DestinationBucketName: !Ref LoggingBucketName
         LogFilePrefix: s3-access-logs/
 
   # S3 Bucket Policy for CloudFront
@@ -154,7 +162,7 @@ Resources:
         IgnorePublicAcls: true
         RestrictPublicBuckets: true
       LoggingConfiguration:
-        DestinationBucketName: !Ref LoggingBucket
+        DestinationBucketName: !Ref LoggingBucketName
         LogFilePrefix: artifacts-logs/
 
   # CodeCommit Repository

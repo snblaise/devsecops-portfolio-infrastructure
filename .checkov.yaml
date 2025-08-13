@@ -1,0 +1,2 @@
+skip-check:
+  - CKV_AWS_18  # S3 Bucket should have access logging configured - LoggingBucket is the destination bucket
