@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: 'DevSecOps Portfolio - S3 + CloudFront + CI/CD Pipeline'
+Description: 'DevSecOps Portfolio - S3 + CloudFront + CI/CD Pipeline (Security Enhanced)'
 
 Parameters:
   ProjectName:
@@ -8,11 +8,29 @@ Parameters:
     Description: 'Name of the project'
 
 Resources:
-  # S3 Bucket for Website Hosting
+  # S3 Bucket for CloudFront Access Logs
+  LoggingBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub '${ProjectName}-logs-${AWS::AccountId}'
+      VersioningConfiguration:
+        Status: Enabled
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      LoggingConfiguration:
+        DestinationBucketName: !Ref LoggingBucket
+        LogFilePrefix: access-logs/
+
+  # S3 Bucket for Website Hosting (Security Enhanced)
   WebsiteBucket:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !Sub '${ProjectName}-website-${AWS::AccountId}'
+      VersioningConfiguration:
+        Status: Enabled
       WebsiteConfiguration:
         IndexDocument: index.html
         ErrorDocument: 404.html
@@ -21,6 +39,9 @@ Resources:
         BlockPublicPolicy: false
         IgnorePublicAcls: false
         RestrictPublicBuckets: false
+      LoggingConfiguration:
+        DestinationBucketName: !Ref LoggingBucket
+        LogFilePrefix: s3-access-logs/
 
   # S3 Bucket Policy for CloudFront
   WebsiteBucketPolicy:
@@ -48,7 +69,45 @@ Resources:
         SigningBehavior: always
         SigningProtocol: sigv4
 
-  # CloudFront Distribution
+  # WAF Web ACL for CloudFront
+  WebACL:
+    Type: AWS::WAFv2::WebACL
+    Properties:
+      Name: !Sub '${ProjectName}-waf'
+      Scope: CLOUDFRONT
+      DefaultAction:
+        Allow: {}
+      Rules:
+        - Name: AWSManagedRulesCommonRuleSet
+          Priority: 1
+          OverrideAction:
+            None: {}
+          Statement:
+            ManagedRuleGroupStatement:
+              VendorName: AWS
+              Name: AWSManagedRulesCommonRuleSet
+          VisibilityConfig:
+            SampledRequestsEnabled: true
+            CloudWatchMetricsEnabled: true
+            MetricName: CommonRuleSetMetric
+        - Name: AWSManagedRulesKnownBadInputsRuleSet
+          Priority: 2
+          OverrideAction:
+            None: {}
+          Statement:
+            ManagedRuleGroupStatement:
+              VendorName: AWS
+              Name: AWSManagedRulesKnownBadInputsRuleSet
+          VisibilityConfig:
+            SampledRequestsEnabled: true
+            CloudWatchMetricsEnabled: true
+            MetricName: KnownBadInputsRuleSetMetric
+      VisibilityConfig:
+        SampledRequestsEnabled: true
+        CloudWatchMetricsEnabled: true
+        MetricName: !Sub '${ProjectName}-waf'
+
+  # CloudFront Distribution (Security Enhanced)
   CloudFrontDistribution:
     Type: AWS::CloudFront::Distribution
     Properties:
@@ -75,8 +134,16 @@ Resources:
         Enabled: true
         HttpVersion: http2
         PriceClass: PriceClass_100
+        WebACLId: !GetAtt WebACL.Arn
+        Logging:
+          Bucket: !GetAtt LoggingBucket.DomainName
+          Prefix: cloudfront-logs/
+          IncludeCookies: false
+        ViewerCertificate:
+          CloudFrontDefaultCertificate: true
+          MinimumProtocolVersion: TLSv1.2_2021
 
-  # S3 Bucket for Pipeline Artifacts
+  # S3 Bucket for Pipeline Artifacts (Security Enhanced)
   ArtifactsBucket:
     Type: AWS::S3::Bucket
     Properties:
@@ -88,6 +155,9 @@ Resources:
         BlockPublicPolicy: true
         IgnorePublicAcls: true
         RestrictPublicBuckets: true
+      LoggingConfiguration:
+        DestinationBucketName: !Ref LoggingBucket
+        LogFilePrefix: artifacts-logs/
 
   # CodeCommit Repository
   CodeRepository:
@@ -275,3 +345,7 @@ Outputs:
   CloudFrontDistributionId:
     Description: 'CloudFront Distribution ID'
     Value: !Ref CloudFrontDistribution
+  
+  WAFWebACLId:
+    Description: 'WAF Web ACL ID'
+    Value: !Ref WebACL
