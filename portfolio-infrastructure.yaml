@@ -19,20 +19,20 @@ Parameters:
 
 Resources:
   # S3 Bucket for CloudFront Access Logs
-  # LoggingBucket:
-  #   Type: AWS::S3::Bucket
-  #   Properties:
-  #     BucketName: !Sub ${ProjectName}-logs-${AWS::AccountId}
-  #     VersioningConfiguration:
-  #       Status: Enabled
-  #     PublicAccessBlockConfiguration:
-  #       BlockPublicAcls: true
-  #       BlockPublicPolicy: true
-  #       IgnorePublicAcls: true
-  #       RestrictPublicBuckets: true
-  #     LoggingConfiguration:
-  #       DestinationBucketName: !Ref LoggingBucketName
-  #       LogFilePrefix: cloudfront-logs/
+  LoggingBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub ${ProjectName}-logs-${AWS::AccountId}
+      VersioningConfiguration:
+        Status: Enabled
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      LoggingConfiguration:
+        DestinationBucketName: !Ref LoggingBucketName
+        LogFilePrefix: cloudfront-logs/
 
 
   # S3 Bucket for Website Hosting (Security Enhanced)
@@ -112,10 +112,7 @@ Resources:
         PriceClass: PriceClass_100
         WebACLId: !ImportValue
           Fn::Sub: '${ProjectName}-waf-arn'
-        Logging:
-          Bucket: !Ref LoggingBucketName
-          Prefix: cloudfront-logs/
-          IncludeCookies: false
+
         ViewerCertificate:
           CloudFrontDefaultCertificate: true
           MinimumProtocolVersion: TLSv1.2_2021
