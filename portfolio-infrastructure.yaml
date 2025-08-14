@@ -63,11 +63,13 @@ Resources:
           - Effect: Allow
             Principal:
               Service: cloudfront.amazonaws.com
-            Action: 
+            Action:
               - s3:GetObject
               - s3:ListBucket
-
-            Resource: !Sub ${WebsiteBucket}/*
+              - s3:ListBucketVersions
+            Resource:
+              - !Sub arn:aws:s3:::${WebsiteBucket}/*
+              - !Sub arn:aws:s3:::${WebsiteBucket}
             Condition:
               StringEquals:
                 AWS:SourceArn: !Sub arn:aws:cloudfront::${AWS::AccountId}:distribution/${CloudFrontDistribution}
