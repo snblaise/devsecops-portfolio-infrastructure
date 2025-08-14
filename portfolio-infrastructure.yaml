@@ -22,7 +22,7 @@ Resources:
   LoggingBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub ${ProjectName}-logs-${AWS::AccountId}
+      BucketName: !Sub ${ProjectName}-cloudfront-logs
       VersioningConfiguration:
         Status: Enabled
       PublicAccessBlockConfiguration:
@@ -42,7 +42,7 @@ Resources:
   WebsiteBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub ${ProjectName}-website-${AWS::AccountId}
+      BucketName: !Sub ${ProjectName}-website
       VersioningConfiguration:
         Status: Enabled
       WebsiteConfiguration:
@@ -130,8 +130,7 @@ Resources:
   ArtifactsBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub ${ProjectName}-artifacts-${AWS::AccountId}
-      VersioningConfiguration:
+      BucketName: !Sub ${ProjectName}-artifacts
         Status: Enabled
       PublicAccessBlockConfiguration:
         BlockPublicAcls: true
